@@ -1,0 +1,2 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  com.github.chad2li.dictauto.base.spring.DictAutoConfiguration
