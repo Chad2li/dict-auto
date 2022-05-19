@@ -1,5 +1,6 @@
 package com.github.chad2li.dictauto.base.aop;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.github.chad2li.dictauto.base.annotation.DictId;
@@ -16,6 +17,7 @@ import org.springframework.core.annotation.Order;
 
 import javax.annotation.Resource;
 import java.lang.reflect.Field;
+import java.util.Map;
 
 /**
  * 使用AOP拦截接口请求，给响应自动注入字典值
@@ -139,16 +141,85 @@ public class DictAopHandler {
         }
     }
 
-    private void injectionDict(Object result) {
-        if (null == result) {
+    /**
+     * 解析对象，将其中有 {@link DictId}注解的属性，自动进行字典值注入
+     *
+     * @param dictObj 对象
+     * @date 2022/5/19 13:13
+     * @author chad
+     * @since 1 by chad at 2022/5/19
+     */
+    private void injectionDict(Object dictObj) {
+        if (null == dictObj) {
             logDebug("Result is null");
             return;
         }
-        if (result instanceof DictItemDto) {
+        if (dictObj instanceof DictItemDto) {
             logDebug("Skip {}", DictItemDto.class.getName());
             return;
         }
-        Class resultCls = result.getClass();
+
+        // iterable
+        if (dictObj instanceof Iterable) {
+            injectionIterable((Iterable) dictObj);
+        } else if (dictObj instanceof Map) {
+            injectionMap((Map) dictObj);
+        } else {
+            // other
+            injectionObject(dictObj);
+        }
+    }
+
+    /**
+     * 解析 iterable，
+     *
+     * @param iterable 被解析的{@code iterable}对象
+     * @date 2022/5/19 13:06
+     * @author chad
+     * @since 1 by chad at 2022/5/19
+     */
+    private void injectionIterable(Iterable iterable) {
+        if (CollectionUtil.isEmpty(iterable)) {
+            logDebug("{} empty", iterable.getClass().getName());
+            return;
+        }
+
+        // 遍历 iterable
+        iterable.forEach(i -> {
+            injectionDict(i);
+        });
+    }
+
+    /**
+     * 解析Map，仅解析 value
+     *
+     * @param map 需要被解析的map
+     * @date 2022/5/19 13:06
+     * @author chad
+     * @since 1 by chad at 2022/5/19
+     */
+    private void injectionMap(Map map) {
+        if (CollectionUtil.isEmpty(map)) {
+            logDebug("{} empty", map.getClass().getName());
+            return;
+        }
+
+        // 遍历 iterable
+        map.values().forEach(m -> {
+            injectionDict(m);
+        });
+    }
+
+    /**
+     * 解析对象
+     *
+     * @param obj 需要解析的对象
+     * @date 2022/5/19 13:06
+     * @author chad
+     * @since 1 by chad at 2022/5/19
+     */
+    private void injectionObject(Object obj) {
+        Class resultCls = obj.getClass();
         logDebug("Dict injection: {}", resultCls.getName());
 
         // result 为基本类型
@@ -158,17 +229,14 @@ public class DictAopHandler {
         }
         // 循环解析属性
         Field[] fields = DictReflectUtil.getFieldsDirectlyHasGetter(resultCls, true);
-
-//        Map<String, Field> fields = DictReflectUtil.getFieldMap(resultCls);
         if (ArrayUtil.isEmpty(fields)) {
             logDebug("{} has not any field", resultCls.getName());
             return;
         }
 
         logDebug("{} injection dict, field size: {}", resultCls.getName(), fields.length);
-
         for (Field field : fields) {
-            injectionDict(result, field);
+            injectionDict(obj, field);
         }
     }
 
