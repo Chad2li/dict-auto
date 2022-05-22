@@ -159,10 +159,11 @@ public class DictAopHandler {
             return;
         }
 
-        // iterable
         if (dictObj instanceof Iterable) {
+            // iterable
             injectionIterable((Iterable) dictObj);
         } else if (dictObj instanceof Map) {
+            // map
             injectionMap((Map) dictObj);
         } else {
             // other
@@ -205,9 +206,7 @@ public class DictAopHandler {
         }
 
         // 遍历 iterable
-        map.values().forEach(m -> {
-            injectionDict(m);
-        });
+        injectionIterable(map.values());
     }
 
     /**

@@ -3,10 +3,13 @@ package com.github.chad2li.dictauto.base.util;
 import cn.hutool.core.exceptions.ExceptionUtil;
 import cn.hutool.core.util.ArrayUtil;
 
+import javax.annotation.processing.Messager;
+import javax.tools.Diagnostic;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.StringJoiner;
 
 /**
  * 测试使用的日志输出工具
@@ -16,12 +19,29 @@ import java.io.IOException;
  * @since 1 create by chad
  */
 public class Log {
-    private static final BufferedWriter WRITER;
+    private static BufferedWriter WRITER;
+    private static Messager messager;
 
-    static {
+    public static void init(Messager messager) {
+        Log.messager = messager;
+
+        initWriter();
+    }
+
+    private static void initWriter() {
+        if (null != Log.WRITER) {
+            return;
+        }
+        synchronized (Log.class) {
+            if (null != Log.WRITER) {
+                return;
+            }
+        }
         // todo jar目录
         String name = Log.class.getClassLoader().getResource(".").toString();
         name += "/processor/" + System.currentTimeMillis() + ".log";
+//        name = "D:\\tmp\\processor\\" + System.currentTimeMillis() + ".log";
+        name = "/tmp/processor/" + System.currentTimeMillis() + ".log";
         File file = new File(name);
         try {
             if (!file.getParentFile().isDirectory()) {
@@ -30,7 +50,7 @@ public class Log {
             file.createNewFile();
             WRITER = new BufferedWriter(new FileWriter(file));
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.messager.printMessage(Diagnostic.Kind.WARNING, ExceptionUtil.stacktraceToString(e));
             throw new RuntimeException(e);
         }
     }
@@ -38,7 +58,7 @@ public class Log {
     /**
      * 输出调试测试语句
      *
-     * @param msg
+     * @param msg 消息
      * @date 2022/5/19 12:22
      * @author chad
      * @since 1 by chad at 2022/5/19
@@ -48,13 +68,16 @@ public class Log {
             return;
         }
         try {
+            StringJoiner sj = new StringJoiner("\n");
             for (String s : msg) {
+                sj.add(s);
                 WRITER.write(s);
                 WRITER.write("\n");
             }
             WRITER.flush();
+            Log.messager.printMessage(Diagnostic.Kind.NOTE, sj.toString());
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.messager.printMessage(Diagnostic.Kind.WARNING, ExceptionUtil.stacktraceToString(e));
             throw new RuntimeException(e);
         }
     }
