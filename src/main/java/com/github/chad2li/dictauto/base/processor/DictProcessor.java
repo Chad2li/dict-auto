@@ -45,7 +45,6 @@ public class DictProcessor extends AbstractProcessor {
     public static final String TRACKER_PACKAGE = DictItemDto.class.getPackage().getName();
 
     public DictProcessor() {
-        Log.write("constructor");
     }
 
     @Override
@@ -59,6 +58,8 @@ public class DictProcessor extends AbstractProcessor {
         Context content = ((JavacProcessingEnvironment) env).getContext();
         this.treeMaker = TreeMaker.instance(content);
         this.names = Names.instance(content);
+
+        Log.init(env.getMessager());
         Log.write("init");
     }
 
@@ -93,7 +94,6 @@ public class DictProcessor extends AbstractProcessor {
     }
 
     /**
-     *
      * @param annotations
      * @param env
      * @return
@@ -105,16 +105,17 @@ public class DictProcessor extends AbstractProcessor {
             String varName = d.getSimpleName().toString();
             String varPrefix = varName.substring(0, varName.indexOf("DictId"));
             JCTree.JCVariableDecl jcVariableDecl = (JCTree.JCVariableDecl) this.javacTrees.getTree(d);
-            TypeElement userDemo = (TypeElement) d.getEnclosingElement();
-            Log.write("\tprocess item: " + userDemo.getSimpleName().toString());
-            JCTree tree = this.javacTrees.getTree(userDemo);
+            TypeElement clsElt = (TypeElement) d.getEnclosingElement();
+            String clsName = clsElt.getSimpleName().toString();
+            Log.write("\tprocess item: " + clsName);
+            JCTree tree = this.javacTrees.getTree(clsElt);
             tree.accept(new TreeTranslator() {
                 @Override
                 public void visitClassDef(JCTree.JCClassDecl jcClassDecl) {
 //                    List<JCTree.JCVariableDecl> dictDecl = new ArrayList<>();
                     StringJoiner sj = new StringJoiner("\n");
 
-                    addImportInfo(userDemo);
+                    addImportInfo(clsElt);
 
                     // todo 处理 list 类型
                     JCTree.JCVariableDecl dictDecl = DictProcessor.this.treeMaker.VarDef(
@@ -124,7 +125,7 @@ public class DictProcessor extends AbstractProcessor {
                             , null
                     );
 
-                    sj.add(varPrefix + "DictItem");
+                    sj.add("\t\t" + clsName + "." + varPrefix + "DictItem");
                     jcClassDecl.defs = jcClassDecl.defs.append(dictDecl);
 
                     Log.write(sj.toString());
