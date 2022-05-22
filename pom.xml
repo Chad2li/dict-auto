@@ -3,10 +3,13 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <artifactId>dict-auto</artifactId>
-    <groupId>com.github.chad2li</groupId>
-    <version>1.1.1-SNAPSHOT</version>
+    <groupId>io.github.chad2li</groupId>
+    <version>1.1.1</version>
     <modelVersion>4.0.0</modelVersion>
     <packaging>jar</packaging>
+    <name>dict-auto</name>
+    <description>auto injection for dict</description>
+    <url>https://github.com/chad2li/dict-auto</url>
 
     <licenses>
         <license>
@@ -31,14 +34,14 @@
     <distributionManagement>
         <snapshotRepository>
             <id>ossrh</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
         </snapshotRepository>
         <repository>
             <id>ossrh</id>
-            <name>Nexus release repository</name>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>
+
 
     <build>
         <finalName>${project.artifactId}-${project.version}</finalName>
@@ -64,6 +67,7 @@
                 <executions>
                     <execution>
                         <id>attach-sources</id>
+                        <phase>install</phase>
                         <goals>
                             <goal>jar-no-fork</goal>
                         </goals>
@@ -101,7 +105,7 @@
                 <executions>
                     <execution>
                         <id>sign-artifacts</id>
-                        <phase>verify</phase>
+                        <phase>install</phase>
                         <goals>
                             <goal>sign</goal>
                         </goals>
@@ -112,19 +116,19 @@
             <plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>1.6.13</version>
+                <version>1.6.7</version>
                 <extensions>true</extensions>
                 <configuration>
                     <serverId>ossrh</serverId>
-                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                    <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
                     <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-release-plugin</artifactId>
-                <version>3.0.0-M5</version>
-            </plugin>
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-release-plugin</artifactId>-->
+<!--                <version>3.0.0-M5</version>-->
+<!--            </plugin>-->
         </plugins>
     </build>
 
