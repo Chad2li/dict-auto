@@ -3,9 +3,9 @@ package com.github.chad2li.dictauto.base.dto;
 import java.util.Objects;
 
 /**
+ * 字典内容
  * @author chad
- * @date 2022/5/18 00:12
- * @since 1 create by chad
+ * @since 1 create by chad at 2022/5/18 00:12
  */
 public class DictItemDto<I> {
     protected I id;
