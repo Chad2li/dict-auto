@@ -1,13 +1,14 @@
-package com.github.chad2li.dictauto.base.aop;
+package io.github.chad2li.dictauto.base.aop;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.exceptions.ExceptionUtil;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
-import com.github.chad2li.dictauto.base.annotation.DictId;
-import com.github.chad2li.dictauto.base.cst.DictCst;
-import com.github.chad2li.dictauto.base.dto.DictItemDto;
-import com.github.chad2li.dictauto.base.service.IDictService;
-import com.github.chad2li.dictauto.base.util.DictReflectUtil;
+import io.github.chad2li.dictauto.base.annotation.DictId;
+import io.github.chad2li.dictauto.base.cst.DictCst;
+import io.github.chad2li.dictauto.base.dto.DictItemDto;
+import io.github.chad2li.dictauto.base.service.IDictService;
+import io.github.chad2li.dictauto.base.util.DictReflectUtil;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
@@ -69,6 +70,12 @@ public class DictAopHandler {
      */
     @AfterReturning(value = "pointcut()", returning = "result")
     public void afterReturning(Object result) {
+        try {
+            logDebug("Dict classpath: {}", DictAopHandler.class.getClassLoader().getResource(".").getFile());
+        } catch (Exception e) {
+            String err = ExceptionUtil.stacktraceToString(e);
+            logDebug("get classpath error:{}", err);
+        }
         // 递归注入字典值
         injectionDict(result);
     }

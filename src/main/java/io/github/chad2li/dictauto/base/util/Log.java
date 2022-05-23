@@ -1,4 +1,4 @@
-package com.github.chad2li.dictauto.base.util;
+package io.github.chad2li.dictauto.base.util;
 
 import cn.hutool.core.exceptions.ExceptionUtil;
 import cn.hutool.core.util.ArrayUtil;
@@ -21,6 +21,10 @@ import java.util.StringJoiner;
 public class Log {
     private static BufferedWriter WRITER;
     private static Messager messager;
+    /**
+     * 是否允许调试
+     */
+    private static final boolean IS_DEBUG = false;
 
     public static void init(Messager messager) {
         Log.messager = messager;
@@ -29,6 +33,10 @@ public class Log {
     }
 
     private static void initWriter() {
+        if (!IS_DEBUG) {
+            // 未开启调试
+            return;
+        }
         if (null != Log.WRITER) {
             return;
         }
@@ -64,6 +72,10 @@ public class Log {
      * @since 1 by chad at 2022/5/19
      */
     public static void write(String... msg) {
+        if (!IS_DEBUG) {
+            // 未开启调试
+            return;
+        }
         if (ArrayUtil.isEmpty(msg)) {
             return;
         }

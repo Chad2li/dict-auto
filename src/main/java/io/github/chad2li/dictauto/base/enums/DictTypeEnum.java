@@ -1,4 +1,4 @@
-package com.github.chad2li.dictauto.base.enums;
+package io.github.chad2li.dictauto.base.enums;
 
 /**
  * 字典枚举类

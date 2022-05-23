@@ -1,4 +1,4 @@
-package com.github.chad2li.dictauto.base.dto;
+package io.github.chad2li.dictauto.base.dto;
 
 import java.util.Objects;
 

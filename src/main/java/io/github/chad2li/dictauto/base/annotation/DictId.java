@@ -1,4 +1,4 @@
-package com.github.chad2li.dictauto.base.annotation;
+package io.github.chad2li.dictauto.base.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
