@@ -1,4 +1,4 @@
-package com.github.chad2li.dictauto.base.cst;
+package io.github.chad2li.dictauto.base.cst;
 
 /**
  * 静态值

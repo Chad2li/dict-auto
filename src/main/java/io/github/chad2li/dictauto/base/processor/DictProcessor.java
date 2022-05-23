@@ -1,8 +1,8 @@
-package com.github.chad2li.dictauto.base.processor;
+package io.github.chad2li.dictauto.base.processor;
 
-import com.github.chad2li.dictauto.base.annotation.DictId;
-import com.github.chad2li.dictauto.base.dto.DictItemDto;
-import com.github.chad2li.dictauto.base.util.Log;
+import io.github.chad2li.dictauto.base.annotation.DictId;
+import io.github.chad2li.dictauto.base.dto.DictItemDto;
+import io.github.chad2li.dictauto.base.util.Log;
 import com.sun.source.tree.Tree;
 import com.sun.source.util.TreePath;
 import com.sun.tools.javac.api.JavacTrees;
@@ -29,7 +29,7 @@ import java.util.StringJoiner;
  * @date 2022/5/13 22:52
  * @since 1 create by chad
  */
-@SupportedAnnotationTypes("com.github.chad2li.dictauto.base.annotation.DictId")
+@SupportedAnnotationTypes("io.github.chad2li.dictauto.base.annotation.DictId")
 public class DictProcessor extends AbstractProcessor {
 
     private Messager messager;

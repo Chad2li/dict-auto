@@ -1,8 +1,8 @@
-package com.github.chad2li.dictauto.base.service;
+package io.github.chad2li.dictauto.base.service;
 
-import com.github.chad2li.dictauto.base.annotation.DictId;
-import com.github.chad2li.dictauto.base.cst.DictCst;
-import com.github.chad2li.dictauto.base.dto.DictItemDto;
+import io.github.chad2li.dictauto.base.annotation.DictId;
+import io.github.chad2li.dictauto.base.cst.DictCst;
+import io.github.chad2li.dictauto.base.dto.DictItemDto;
 
 /**
  * 获取字典数据的服务

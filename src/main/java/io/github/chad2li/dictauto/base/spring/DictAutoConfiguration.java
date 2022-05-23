@@ -1,7 +1,7 @@
-package com.github.chad2li.dictauto.base.spring;
+package io.github.chad2li.dictauto.base.spring;
 
-import com.github.chad2li.dictauto.base.aop.DictAopHandler;
-import com.github.chad2li.dictauto.base.service.IDictService;
+import io.github.chad2li.dictauto.base.aop.DictAopHandler;
+import io.github.chad2li.dictauto.base.service.IDictService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Bean;
 

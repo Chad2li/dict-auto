@@ -1,4 +1,4 @@
-package com.github.chad2li.dictauto.base.util;
+package io.github.chad2li.dictauto.base.util;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.Assert;
