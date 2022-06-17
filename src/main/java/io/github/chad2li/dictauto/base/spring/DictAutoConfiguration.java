@@ -4,6 +4,7 @@ import io.github.chad2li.dictauto.base.aop.DictAopHandler;
 import io.github.chad2li.dictauto.base.service.IDictService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 import javax.annotation.Resource;
 
@@ -17,6 +18,7 @@ import javax.annotation.Resource;
  * @date 2022/5/19 12:34
  * @since 1 create by chad
  */
+@EnableAspectJAutoProxy
 @ConditionalOnBean(name = {IDictService.SPRING_BEAN_NAME})
 public class DictAutoConfiguration {
     @Resource(name = IDictService.SPRING_BEAN_NAME)

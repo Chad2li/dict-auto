@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <artifactId>dict-auto</artifactId>
     <groupId>io.github.chad2li</groupId>
-    <version>1.1.2</version>
+    <version>1.2.0</version>
     <modelVersion>4.0.0</modelVersion>
     <packaging>jar</packaging>
     <name>dict-auto</name>
@@ -124,11 +124,11 @@
                     <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>
             </plugin>
-<!--            <plugin>-->
-<!--                <groupId>org.apache.maven.plugins</groupId>-->
-<!--                <artifactId>maven-release-plugin</artifactId>-->
-<!--                <version>3.0.0-M5</version>-->
-<!--            </plugin>-->
+            <!--            <plugin>-->
+            <!--                <groupId>org.apache.maven.plugins</groupId>-->
+            <!--                <artifactId>maven-release-plugin</artifactId>-->
+            <!--                <version>3.0.0-M5</version>-->
+            <!--            </plugin>-->
         </plugins>
     </build>
 
@@ -162,17 +162,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.aspectj</groupId>
-            <artifactId>aspectjweaver</artifactId>
-            <version>1.9.9.1</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
+            <artifactId>spring-boot-starter-aop</artifactId>
             <version>2.5.5</version>
-            <scope>provided</scope>
         </dependency>
     </dependencies>
 

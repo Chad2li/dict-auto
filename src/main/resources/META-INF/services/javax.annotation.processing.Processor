@@ -1,1 +1,3 @@
 io.github.chad2li.dictauto.base.processor.DictProcessor
+lombok.launch.AnnotationProcessorHider$AnnotationProcessor
+lombok.launch.AnnotationProcessorHider$ClaimingProcessor
