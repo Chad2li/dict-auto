@@ -1,8 +1,6 @@
 package io.github.chad2li.dictauto.base.processor;
 
-import io.github.chad2li.dictauto.base.annotation.DictId;
-import io.github.chad2li.dictauto.base.dto.DictItemDto;
-import io.github.chad2li.dictauto.base.util.Log;
+import cn.hutool.core.collection.CollectionUtil;
 import com.sun.source.tree.Tree;
 import com.sun.source.util.TreePath;
 import com.sun.tools.javac.api.JavacTrees;
@@ -14,15 +12,25 @@ import com.sun.tools.javac.tree.TreeTranslator;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Names;
+import io.github.chad2li.dictauto.base.annotation.DictId;
+import io.github.chad2li.dictauto.base.cst.DictCst;
+import io.github.chad2li.dictauto.base.dto.DictItemDto;
+import io.github.chad2li.dictauto.base.util.Log;
 
-import javax.annotation.processing.*;
+import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.Filer;
+import javax.annotation.processing.Messager;
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.annotation.processing.RoundEnvironment;
+import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.util.ElementFilter;
 import javax.lang.model.util.Elements;
 import java.util.ArrayList;
 import java.util.Set;
-import java.util.StringJoiner;
 
 /**
  * @author chad
@@ -83,14 +91,14 @@ public class DictProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         Log.write("process start");
-        boolean result = false;
         try {
-            result = tryProcess4(annotations, roundEnv);
+            tryProcess4(annotations, roundEnv);
         } catch (Throwable t) {
             Log.write(t);
         }
         Log.write("process end");
-        return result;
+        // false表示其他 processor 能继续处理该类
+        return false;
     }
 
     /**
@@ -98,43 +106,52 @@ public class DictProcessor extends AbstractProcessor {
      * @param env
      * @return
      */
-    private boolean tryProcess4(Set<? extends TypeElement> annotations, RoundEnvironment env) {
+    private void tryProcess4(Set<? extends TypeElement> annotations, RoundEnvironment env) {
         Set<? extends Element> dicts = env.getElementsAnnotatedWith(DictId.class);
         Log.write("process size: " + dicts.size());
-        dicts.forEach(d -> {
-            String varName = d.getSimpleName().toString();
-            String varPrefix = varName.substring(0, varName.indexOf("DictId"));
-            JCTree.JCVariableDecl jcVariableDecl = (JCTree.JCVariableDecl) this.javacTrees.getTree(d);
-            TypeElement clsElt = (TypeElement) d.getEnclosingElement();
+        dictFor: for (Element dictElement : dicts) {
+            String varName = dictElement.getSimpleName().toString();
+            String varPrefix = varName.substring(0, varName.indexOf(DictCst.FIELD_DICT_ID_SUFFIX));
+            TypeElement clsElt = (TypeElement) dictElement.getEnclosingElement();
             String clsName = clsElt.getSimpleName().toString();
             Log.write("\tprocess item: " + clsName);
             JCTree tree = this.javacTrees.getTree(clsElt);
+
+            // 处理字典item属性已存在
+            String dictItemFieldName = varPrefix + DictCst.FIELD_DICT_ITEM_SUFFIX;
+            java.util.List<VariableElement> fields = ElementFilter.fieldsIn(clsElt.getEnclosedElements());
+            if (CollectionUtil.isNotEmpty(fields)) {
+                // 判断是否已存在属性，跳过
+                for (VariableElement field : fields) {
+                    String fieldName = field.getSimpleName().toString();
+                    if (dictItemFieldName.equalsIgnoreCase(fieldName)) {
+                        Log.write("\t\texists " + clsName + "." + dictItemFieldName);
+                        continue dictFor;
+                    }
+                }
+            }
+            Log.write("\t\tadd    " + clsName + "." + dictItemFieldName);
             tree.accept(new TreeTranslator() {
                 @Override
                 public void visitClassDef(JCTree.JCClassDecl jcClassDecl) {
-//                    List<JCTree.JCVariableDecl> dictDecl = new ArrayList<>();
-                    StringJoiner sj = new StringJoiner("\n");
 
                     addImportInfo(clsElt);
 
                     // todo 处理 list 类型
                     JCTree.JCVariableDecl dictDecl = DictProcessor.this.treeMaker.VarDef(
                             DictProcessor.this.treeMaker.Modifiers(Flags.PRIVATE)
-                            , DictProcessor.this.names.fromString(varPrefix + "DictItem")
+                            , DictProcessor.this.names.fromString(dictItemFieldName)
                             , DictProcessor.this.treeMaker.Ident(DictProcessor.this.names.fromString(TRACKER_CLASS))
                             , null
                     );
 
-                    sj.add("\t\t" + clsName + "." + varPrefix + "DictItem");
                     jcClassDecl.defs = jcClassDecl.defs.append(dictDecl);
 
-                    Log.write(sj.toString());
-
+                    Log.write("\t\tadd    " + clsName + "." + dictItemFieldName + " succ");
                     super.visitClassDef(jcClassDecl);
                 }
             });
-        });
-        return true;
+        }
     }
 
     /**
