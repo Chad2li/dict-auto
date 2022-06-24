@@ -24,7 +24,7 @@ public class Log {
     /**
      * 是否允许调试
      */
-    private static final boolean IS_DEBUG = true;
+    private static final boolean IS_DEBUG = false;
 
     public static void init(Messager messager) {
         Log.messager = messager;
