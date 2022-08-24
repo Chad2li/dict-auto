@@ -71,10 +71,14 @@ public class DictAopHandler {
     @AfterReturning(value = "pointcut()", returning = "result")
     public void afterReturning(Object result) {
         try {
-            logDebug("Dict classpath: {}", DictAopHandler.class.getClassLoader().getResource(".").getFile());
+            if (log.isDebugEnabled()) {
+                log.debug("Dict classpath: {}", DictAopHandler.class.getClassLoader().getResource(".").getFile());
+            }
         } catch (Exception e) {
             String err = ExceptionUtil.stacktraceToString(e);
-            logDebug("get classpath error:{}", err);
+            if (log.isDebugEnabled()) {
+                log.debug("get classpath error:{}", err);
+            }
         }
         // 递归注入字典值
         injectionDict(result);
@@ -86,7 +90,9 @@ public class DictAopHandler {
         DictId dictId = field.getAnnotation(DictId.class);
         if (null == dictId) {
             // 递归
-            logDebug("{}.{} not {}", resultCls.getName(), field.getName(), DictId.class.getName());
+            if (log.isDebugEnabled()) {
+                log.debug("{}.{} not {}", resultCls.getName(), field.getName(), DictId.class.getName());
+            }
             Object fieldValue = null;
             try {
                 fieldValue = DictReflectUtil.getFieldValue(result, field);
@@ -107,7 +113,9 @@ public class DictAopHandler {
             throw new IllegalStateException(resultCls.getName() + "." + field.getName() + " get value error", ex);
         }
         if (ObjectUtil.isEmpty(fieldValue)) {
-            logDebug("{}.{} value is null", resultCls.getName(), field.getName());
+            if (log.isDebugEnabled()) {
+                log.debug("{}.{} value is null", resultCls.getName(), field.getName());
+            }
             return;
         }
 
@@ -121,23 +129,29 @@ public class DictAopHandler {
             dictName = dictName.substring(0, suffixIndex);
         }
         String dictItemName = dictName + DictCst.FIELD_DICT_ITEM_SUFFIX;
-        logDebug("{}.{} dict item name: {}", resultCls.getName(), field.getName(), dictItemName);
+        if (log.isDebugEnabled()) {
+            log.debug("{}.{} dict item name: {}", resultCls.getName(), field.getName(), dictItemName);
+        }
 
         if (!DictReflectUtil.hasField(resultCls, dictItemName)) {
-            logDebug("{}.{} has not dict item name: {}", resultCls.getName(), field.getName(), dictItemName);
+            if (log.isDebugEnabled()) {
+                log.debug("{}.{} has not dict item name: {}", resultCls.getName(), field.getName(), dictItemName);
+            }
             return;
         }
         try {
             Object dictItemValue = DictReflectUtil.getFieldValue(result, dictItemName);
             if (null != dictItemValue) {
-                logDebug("{}.{} value exists, skip auto injection", resultCls.getName(), dictItemName);
+                if (log.isDebugEnabled()) {
+                    log.debug("{}.{} value exists, skip auto injection", resultCls.getName(), dictItemName);
+                }
             }
         } catch (Exception ex) {
             throw new IllegalStateException(resultCls.getName() + "." + dictItemName + " get value error", ex);
         }
 
         // 获取字典值
-        DictItemDto dictItem = dictService.dict(fieldValue, dictType);
+        DictItemDto dictItem = dictService.dict(fieldValue, dictType, result);
         if (null == dictItem) {
             throw new NullPointerException(resultCls.getName() + "." + field.getName() + " not found value, id:" + fieldValue + ", type:" + dictType);
         }
@@ -158,11 +172,15 @@ public class DictAopHandler {
      */
     private void injectionDict(Object dictObj) {
         if (null == dictObj) {
-            logDebug("Result is null");
+            if (log.isDebugEnabled()) {
+                log.debug("Result is null");
+            }
             return;
         }
         if (dictObj instanceof DictItemDto) {
-            logDebug("Skip {}", DictItemDto.class.getName());
+            if (log.isDebugEnabled()) {
+                log.debug("Skip {}", DictItemDto.class.getName());
+            }
             return;
         }
 
@@ -188,7 +206,9 @@ public class DictAopHandler {
      */
     private void injectionIterable(Iterable iterable) {
         if (CollectionUtil.isEmpty(iterable)) {
-            logDebug("{} empty", iterable.getClass().getName());
+            if (log.isDebugEnabled()) {
+                log.debug("{} empty", iterable.getClass().getName());
+            }
             return;
         }
 
@@ -208,7 +228,9 @@ public class DictAopHandler {
      */
     private void injectionMap(Map map) {
         if (CollectionUtil.isEmpty(map)) {
-            logDebug("{} empty", map.getClass().getName());
+            if (log.isDebugEnabled()) {
+                log.debug("{} empty", map.getClass().getName());
+            }
             return;
         }
 
@@ -226,21 +248,29 @@ public class DictAopHandler {
      */
     private void injectionObject(Object obj) {
         Class resultCls = obj.getClass();
-        logDebug("Dict injection: {}", resultCls.getName());
+        if (log.isDebugEnabled()) {
+            log.debug("Dict injection: {}", resultCls.getName());
+        }
 
         // result 为基本类型
         if (isBaseType(resultCls)) {
-            logDebug("{} is base type", resultCls.getName());
+            if (log.isDebugEnabled()) {
+                log.debug("{} is base type", resultCls.getName());
+            }
             return;
         }
         // 循环解析属性
         Field[] fields = DictReflectUtil.getFieldsDirectlyHasGetter(resultCls, true);
         if (ArrayUtil.isEmpty(fields)) {
-            logDebug("{} has not any field", resultCls.getName());
+            if (log.isDebugEnabled()) {
+                log.debug("{} has not any field", resultCls.getName());
+            }
             return;
         }
 
-        logDebug("{} injection dict, field size: {}", resultCls.getName(), fields.length);
+        if (log.isDebugEnabled()) {
+            log.debug("{} injection dict, field size: {}", resultCls.getName(), fields.length);
+        }
         for (Field field : fields) {
             injectionDict(obj, field);
         }
@@ -298,13 +328,6 @@ public class DictAopHandler {
 
         // 非基本类型
         return false;
-    }
-
-
-    private void logDebug(String format, Object... params) {
-        if (log.isDebugEnabled()) {
-            log.debug(format, params);
-        }
     }
 
     public IDictService getDictService() {

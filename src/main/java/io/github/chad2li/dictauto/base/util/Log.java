@@ -21,6 +21,8 @@ import java.util.StringJoiner;
 public class Log {
     private static BufferedWriter WRITER;
     private static Messager messager;
+
+    private static final String TAG = "DictAuto: ";
     /**
      * 是否允许调试
      */
@@ -82,10 +84,9 @@ public class Log {
         try {
             StringJoiner sj = new StringJoiner("\n");
             for (String s : msg) {
-                sj.add(s);
-                WRITER.write(s);
-                WRITER.write("\n");
+                sj.add(TAG + s);
             }
+            WRITER.write(sj.toString());
             WRITER.flush();
             Log.messager.printMessage(Diagnostic.Kind.NOTE, sj.toString());
         } catch (IOException e) {
