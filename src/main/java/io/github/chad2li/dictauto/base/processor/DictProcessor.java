@@ -115,7 +115,9 @@ public class DictProcessor extends AbstractProcessor {
         dictFor:
         for (Element dictElement : dicts) {
             String varName = dictElement.getSimpleName().toString();
-            String varPrefix = varName.substring(0, varName.indexOf(DictCst.FIELD_DICT_ID_SUFFIX));
+
+            int hasDictIdSuffixIndex = varName.indexOf(DictCst.FIELD_DICT_ID_SUFFIX);
+            String varPrefix = hasDictIdSuffixIndex > -1 ? varName.substring(0, hasDictIdSuffixIndex) : varName;
             TypeElement clsElt = (TypeElement) dictElement.getEnclosingElement();
             String clsName = clsElt.getSimpleName().toString();
             Log.write("\tprocess item: " + clsName);
