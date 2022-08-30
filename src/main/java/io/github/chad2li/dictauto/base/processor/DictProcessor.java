@@ -147,6 +147,8 @@ public class DictProcessor extends AbstractProcessor {
                     // import
                     addImportInfo(clsElt);
 
+//                    DictProcessor.this.treeMaker.at(jcClassDecl.pos);
+
                     // todo 处理 list 类型
                     JCTree.JCVariableDecl dictDecl = DictProcessor.this.treeMaker.VarDef(
                             DictProcessor.this.treeMaker.Modifiers(Flags.PRIVATE)
@@ -155,8 +157,8 @@ public class DictProcessor extends AbstractProcessor {
                             , null
                     );
 
-                    JCTree.JCMethodDecl setterMethod = setter(dictDecl, setter);
-                    JCTree.JCMethodDecl getterMethod = getter(dictDecl, getter);
+                    JCTree.JCMethodDecl setterMethod = setter(jcClassDecl, dictDecl, setter);
+                    JCTree.JCMethodDecl getterMethod = getter(jcClassDecl, dictDecl, getter);
 
                     jcClassDecl.defs = jcClassDecl.defs
                             .append(dictDecl)
@@ -181,7 +183,7 @@ public class DictProcessor extends AbstractProcessor {
      * @author chad
      * @since 1 by chad at 2022/6/23
      */
-    private JCTree.JCMethodDecl setter(JCTree.JCVariableDecl dictDecl, String setterName) {
+    private JCTree.JCMethodDecl setter(JCTree.JCClassDecl jcClassDecl, JCTree.JCVariableDecl dictDecl, String setterName) {
         ListBuffer<JCTree.JCStatement> statements = new ListBuffer<>();
         //生成函数体 this.name = name;
         statements.append(treeMaker.Exec(treeMaker.Assign(treeMaker.Select(treeMaker.Ident(names.fromString("this")),
@@ -194,6 +196,8 @@ public class DictProcessor extends AbstractProcessor {
                 //初始化语句
                 null
         );
+        // 设置pos
+        treeMaker.at(jcClassDecl.pos);
         //生成方法
         return treeMaker.MethodDef(
                 treeMaker.Modifiers(Flags.PUBLIC),
@@ -223,14 +227,34 @@ public class DictProcessor extends AbstractProcessor {
      * @author chad
      * @since 1 by chad at 2022/6/23
      */
-    private JCTree.JCMethodDecl getter(JCTree.JCVariableDecl dictDecl, String getterName) {
+    private JCTree.JCMethodDecl getter(JCTree.JCClassDecl jcClassDecl, JCTree.JCVariableDecl dictDecl, String getterName) {
+
         ListBuffer<JCTree.JCStatement> statements = new ListBuffer<>();
         //生成函数体 return this.字段名
         statements.append(treeMaker.Return(treeMaker.Select(treeMaker.Ident(names.fromString("this")), dictDecl.getName())));
         JCTree.JCBlock body = treeMaker.Block(0, statements.toList());
+        // 设置pos
+        treeMaker.at(jcClassDecl.pos);
         //生成方法
-        return treeMaker.MethodDef(treeMaker.Modifiers(Flags.PUBLIC), DictProcessor.this.names.fromString(getterName)
-                , dictDecl.vartype, List.nil(), List.nil(), List.nil(), body, null);
+        return treeMaker.MethodDef(
+                // modifier
+                treeMaker.Modifiers(Flags.PUBLIC),
+                // name
+                DictProcessor.this.names.fromString(getterName)
+                // jc expression
+                , dictDecl.vartype,
+                // params
+                List.nil(),
+                // jc variable decl
+                List.nil(),
+                // jc expression
+                List.nil(),
+                // jc block
+                body,
+                // jc expression
+                null
+                //
+        );
     }
 
     /**
