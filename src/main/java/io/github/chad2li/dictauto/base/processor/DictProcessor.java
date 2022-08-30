@@ -156,6 +156,7 @@ public class DictProcessor extends AbstractProcessor {
                             , DictProcessor.this.treeMaker.Ident(DictProcessor.this.names.fromString(TRACKER_CLASS))
                             , null
                     );
+                    dictDecl.pos = jcClassDecl.pos;
 
                     JCTree.JCMethodDecl setterMethod = setter(jcClassDecl, dictDecl, setter);
                     JCTree.JCMethodDecl getterMethod = getter(jcClassDecl, dictDecl, getter);
@@ -196,10 +197,11 @@ public class DictProcessor extends AbstractProcessor {
                 //初始化语句
                 null
         );
+        paramVal.setPos(jcClassDecl.pos);
         // 设置pos
-        treeMaker.at(jcClassDecl.pos);
+//        treeMaker.at(jcClassDecl.pos);
         //生成方法
-        return treeMaker.MethodDef(
+        JCTree.JCMethodDecl jcMethodDecl = treeMaker.MethodDef(
                 treeMaker.Modifiers(Flags.PUBLIC),
                 DictProcessor.this.names.fromString(setterName),
                 //返回类型
@@ -215,6 +217,9 @@ public class DictProcessor extends AbstractProcessor {
                 //默认方法（可能是interface中的那个default）
                 null
         );
+
+        jcMethodDecl.setPos(jcClassDecl.pos);
+        return jcMethodDecl;
     }
 
     /**
@@ -234,9 +239,9 @@ public class DictProcessor extends AbstractProcessor {
         statements.append(treeMaker.Return(treeMaker.Select(treeMaker.Ident(names.fromString("this")), dictDecl.getName())));
         JCTree.JCBlock body = treeMaker.Block(0, statements.toList());
         // 设置pos
-        treeMaker.at(jcClassDecl.pos);
+//        treeMaker.at(jcClassDecl.pos);
         //生成方法
-        return treeMaker.MethodDef(
+        JCTree.JCMethodDecl jcMethodDecl = treeMaker.MethodDef(
                 // modifier
                 treeMaker.Modifiers(Flags.PUBLIC),
                 // name
@@ -255,6 +260,9 @@ public class DictProcessor extends AbstractProcessor {
                 null
                 //
         );
+
+        jcMethodDecl.setPos(jcClassDecl.pos);
+        return jcMethodDecl;
     }
 
     /**
