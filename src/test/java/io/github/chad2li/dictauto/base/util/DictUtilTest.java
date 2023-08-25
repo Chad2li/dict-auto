@@ -1,9 +1,12 @@
 package io.github.chad2li.dictauto.base.util;
 
 import io.github.chad2li.dictauto.base.annotation.DictId;
+import io.github.chad2li.dictauto.base.cst.DictCst;
 import io.github.chad2li.dictauto.base.dto.DictItemDto;
+import io.github.chad2li.dictauto.base.properties.DictAutoProperties;
 import lombok.ToString;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -22,6 +25,16 @@ import java.util.stream.Collectors;
  * @since created at 2023/8/25 15:21
  */
 public class DictUtilTest {
+    private DictAutoProperties dictProps;
+
+    @Before
+    public void before() {
+        dictProps = new DictAutoProperties();
+        dictProps.setDefaultParentId(DictCst.DEFAULT_PARENT_ID);
+        dictProps.setDictIdSuffix(DictCst.FIELD_DICT_ID_SUFFIX);
+        dictProps.setDictItemSuffix(DictCst.FIELD_DICT_ITEM_SUFFIX);
+    }
+
     @Test
     public void queryDictAnnotation() {
         DemoVo demo = demoVo(true);
@@ -33,7 +46,7 @@ public class DictUtilTest {
         Assert.assertTrue(typeSet.contains("gender"));
         Assert.assertTrue(typeSet.contains("city"));
         // 2.
-        DictUtil.injectionDict(demo, dictMap());
+        DictUtil.injectionDict(demo, dictMap(), dictProps);
         assertDemo(demo);
         // - list
         assertDemo(demo.getList().get(0));

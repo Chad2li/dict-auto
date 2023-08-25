@@ -56,7 +56,6 @@
                     <target>1.8</target>
                     <!-- 解决告警：编码GBK的不可映射字符-->
                     <encoding>UTF-8</encoding>
-                    <compilerArgument>-proc:none</compilerArgument>
                 </configuration>
             </plugin>
             <!-- 生成源码 -->
