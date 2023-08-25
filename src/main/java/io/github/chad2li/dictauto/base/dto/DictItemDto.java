@@ -1,55 +1,36 @@
 package io.github.chad2li.dictauto.base.dto;
 
-import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+import java.io.Serializable;
 
 /**
  * 字典内容
+ *
  * @author chad
  * @since 1 create by chad at 2022/5/18 00:12
  */
-public class DictItemDto<I> {
+@Data
+@AllArgsConstructor
+public class DictItemDto<I> implements Serializable {
+    /**
+     * dict id，同一类型一唯一
+     */
     protected I id;
+    /**
+     * 父级
+     */
+    protected I parentId;
+    /**
+     * 字典类型
+     */
+    protected String type;
+    /**
+     * 字典值
+     */
     protected String name;
 
-    public I getId() {
-        return id;
-    }
 
-    public void setId(I id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    @Override
-    public String toString() {
-        return "DictItemDto{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                '}';
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        DictItemDto<?> that = (DictItemDto<?>) o;
-        return getId().equals(that.getId()) &&
-                getName().equals(that.getName());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(getId(), getName());
-    }
+    private static final long serialVersionUID = 1L;
 }

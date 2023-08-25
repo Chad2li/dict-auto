@@ -1,12 +1,13 @@
-package io.github.chad2li.dictauto.base.spring;
+package io.github.chad2li.dictauto.base;
 
 import io.github.chad2li.dictauto.base.aop.DictAopHandler;
+import io.github.chad2li.dictauto.base.properties.DictAutoProperties;
 import io.github.chad2li.dictauto.base.service.IDictService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
-
-import javax.annotation.Resource;
 
 /**
  * 自动配置 Dict 注入
@@ -19,13 +20,12 @@ import javax.annotation.Resource;
  * @since 1 create by chad
  */
 @EnableAspectJAutoProxy
+@EnableConfigurationProperties(DictAutoProperties.class)
 @ConditionalOnBean(name = {IDictService.SPRING_BEAN_NAME})
 public class DictAutoConfiguration {
-    @Resource(name = IDictService.SPRING_BEAN_NAME)
-    private IDictService iDictService;
-
     @Bean(DictAopHandler.SPRING_BEAN_NAME)
-    public DictAopHandler dictAopHandler() {
-        return new DictAopHandler(this.iDictService);
+    public DictAopHandler dictAopHandler(@Qualifier(IDictService.SPRING_BEAN_NAME) IDictService iDictService,
+                                         DictAutoProperties dictProps) {
+        return new DictAopHandler(iDictService, dictProps);
     }
 }

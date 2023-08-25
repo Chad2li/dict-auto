@@ -1,24 +1,21 @@
 package io.github.chad2li.dictauto.base.aop;
 
-import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.exceptions.ExceptionUtil;
-import cn.hutool.core.util.ArrayUtil;
-import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.collection.CollUtil;
 import io.github.chad2li.dictauto.base.annotation.DictId;
 import io.github.chad2li.dictauto.base.cst.DictCst;
 import io.github.chad2li.dictauto.base.dto.DictItemDto;
+import io.github.chad2li.dictauto.base.properties.DictAutoProperties;
 import io.github.chad2li.dictauto.base.service.IDictService;
-import io.github.chad2li.dictauto.base.util.DictReflectUtil;
+import io.github.chad2li.dictauto.base.util.DictUtil;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Pointcut;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;
 
-import javax.annotation.Resource;
-import java.lang.reflect.Field;
-import java.util.Map;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * 使用AOP拦截接口请求，给响应自动注入字典值
@@ -41,20 +38,12 @@ public class DictAopHandler {
 
     private static final Logger log = LoggerFactory.getLogger(DictAopHandler.class);
 
-    @Resource
-    private IDictService dictService;
+    private IDictService<?, ?> dictService;
+    private DictAutoProperties dictProps;
 
-    public DictAopHandler(IDictService dictService) {
+    public DictAopHandler(IDictService<?, ?> dictService, DictAutoProperties dictProps) {
         this.dictService = dictService;
-    }
-
-    /**
-     * 对有 RestController 或 Controller 注解的public方法进行拦截
-     */
-    @Pointcut("(@within(org.springframework.web.bind.annotation.RestController)" +
-            " || @within(org.springframework.stereotype.Controller))" +
-            " && execution(public * *(..))")
-    public void pointcut() {
+        this.dictProps = dictProps;
     }
 
     /**
@@ -66,275 +55,25 @@ public class DictAopHandler {
      * 4. 设置值<br/>
      * </p>
      *
-     * @param result
+     * @param result 方法响应结果
      */
-    @AfterReturning(value = "pointcut()", returning = "result")
+    @AfterReturning(value = "@annotation(io.github.chad2li.dictauto.base.annotation.DictResult)",
+            returning = "result")
     public void afterReturning(Object result) {
         try {
-            if (log.isDebugEnabled()) {
-                log.debug("Dict classpath: {}", DictAopHandler.class.getClassLoader().getResource(".").getFile());
-            }
+            log.debug("Dict classpath: {}", Objects.requireNonNull(DictAopHandler.class.getClassLoader().getResource(".")).getFile());
         } catch (Exception e) {
-            String err = ExceptionUtil.stacktraceToString(e);
-            if (log.isDebugEnabled()) {
-                log.debug("get classpath error:{}", err);
-            }
+            log.debug("get classpath error", e);
         }
-        // 递归注入字典值
-        injectionDict(result);
-    }
-
-
-    private void injectionDict(Object result, Field field) {
-        Class resultCls = result.getClass();
-        DictId dictId = field.getAnnotation(DictId.class);
-        if (null == dictId) {
-            // 递归
-            if (log.isDebugEnabled()) {
-                log.debug("{}.{} not {}", resultCls.getName(), field.getName(), DictId.class.getName());
-            }
-            Object fieldValue = null;
-            try {
-                fieldValue = DictReflectUtil.getFieldValue(result, field);
-            } catch (Exception ex) {
-                throw new IllegalStateException(resultCls.getName() + "." + field.getName() + " get value error", ex);
-            }
-
-            // 深度解析
-            injectionDict(fieldValue);
+        // 1. 查询所有字典注解
+        Set<DictId> dictSet = DictUtil.queryDictAnnotation(result);
+        if (CollUtil.isEmpty(dictSet)) {
             return;
         }
-
-        // dict field value
-        Object fieldValue = null;
-        try {
-            fieldValue = DictReflectUtil.getFieldValue(result, field);
-        } catch (Exception ex) {
-            throw new IllegalStateException(resultCls.getName() + "." + field.getName() + " get value error", ex);
-        }
-        if (ObjectUtil.isEmpty(fieldValue)) {
-            if (log.isDebugEnabled()) {
-                log.debug("{}.{} value is null", resultCls.getName(), field.getName());
-            }
-            return;
-        }
-
-        // dict field type, nullable
-        String dictType = dictId.type();
-
-        // check DictItemDto field exists
-        String dictName = field.getName();
-        int suffixIndex = dictName.indexOf(DictCst.FIELD_DICT_ID_SUFFIX);
-        if (suffixIndex > 0) {
-            dictName = dictName.substring(0, suffixIndex);
-        }
-        String dictItemName = dictName + DictCst.FIELD_DICT_ITEM_SUFFIX;
-        if (log.isDebugEnabled()) {
-            log.debug("{}.{} dict item name: {}", resultCls.getName(), field.getName(), dictItemName);
-        }
-
-        if (!DictReflectUtil.hasField(resultCls, dictItemName)) {
-            if (log.isDebugEnabled()) {
-                log.debug("{}.{} has not dict item name: {}", resultCls.getName(), field.getName(), dictItemName);
-            }
-            return;
-        }
-        try {
-            Object dictItemValue = DictReflectUtil.getFieldValue(result, dictItemName);
-            if (null != dictItemValue) {
-                if (log.isDebugEnabled()) {
-                    log.debug("{}.{} value exists, skip auto injection", resultCls.getName(), dictItemName);
-                }
-            }
-        } catch (Exception ex) {
-            throw new IllegalStateException(resultCls.getName() + "." + dictItemName + " get value error", ex);
-        }
-
-        // 获取字典值
-        DictItemDto dictItem = dictService.dict(fieldValue, dictType, result);
-        if (null == dictItem) {
-            throw new NullPointerException(resultCls.getName() + "." + field.getName() + " not found value, id:" + fieldValue + ", type:" + dictType);
-        }
-        try {
-            DictReflectUtil.setFieldValue(result, dictItemName, dictItem);
-        } catch (Exception ex) {
-            throw new RuntimeException(resultCls.getName() + "." + dictItemName + " set value error", ex);
-        }
-    }
-
-    /**
-     * 解析对象，将其中有 {@link DictId}注解的属性，自动进行字典值注入
-     *
-     * @param dictObj 对象
-     * @date 2022/5/19 13:13
-     * @author chad
-     * @since 1 by chad at 2022/5/19
-     */
-    private void injectionDict(Object dictObj) {
-        if (null == dictObj) {
-            if (log.isDebugEnabled()) {
-                log.debug("Result is null");
-            }
-            return;
-        }
-        if (dictObj instanceof DictItemDto) {
-            if (log.isDebugEnabled()) {
-                log.debug("Skip {}", DictItemDto.class.getName());
-            }
-            return;
-        }
-
-        if (dictObj instanceof Iterable) {
-            // iterable
-            injectionIterable((Iterable) dictObj);
-        } else if (dictObj instanceof Map) {
-            // map
-            injectionMap((Map) dictObj);
-        } else {
-            // other
-            injectionObject(dictObj);
-        }
-    }
-
-    /**
-     * 解析 iterable，
-     *
-     * @param iterable 被解析的{@code iterable}对象
-     * @date 2022/5/19 13:06
-     * @author chad
-     * @since 1 by chad at 2022/5/19
-     */
-    private void injectionIterable(Iterable iterable) {
-        if (CollectionUtil.isEmpty(iterable)) {
-            if (log.isDebugEnabled()) {
-                log.debug("{} empty", iterable.getClass().getName());
-            }
-            return;
-        }
-
-        // 遍历 iterable
-        iterable.forEach(i -> {
-            injectionDict(i);
-        });
-    }
-
-    /**
-     * 解析Map，仅解析 value
-     *
-     * @param map 需要被解析的map
-     * @date 2022/5/19 13:06
-     * @author chad
-     * @since 1 by chad at 2022/5/19
-     */
-    private void injectionMap(Map map) {
-        if (CollectionUtil.isEmpty(map)) {
-            if (log.isDebugEnabled()) {
-                log.debug("{} empty", map.getClass().getName());
-            }
-            return;
-        }
-
-        // 遍历 iterable
-        injectionIterable(map.values());
-    }
-
-    /**
-     * 解析对象
-     *
-     * @param obj 需要解析的对象
-     * @date 2022/5/19 13:06
-     * @author chad
-     * @since 1 by chad at 2022/5/19
-     */
-    private void injectionObject(Object obj) {
-        Class resultCls = obj.getClass();
-        if (log.isDebugEnabled()) {
-            log.debug("Dict injection: {}", resultCls.getName());
-        }
-
-        // result 为基本类型
-        if (isBaseType(resultCls)) {
-            if (log.isDebugEnabled()) {
-                log.debug("{} is base type", resultCls.getName());
-            }
-            return;
-        }
-        // 循环解析属性
-        Field[] fields = DictReflectUtil.getFieldsDirectlyHasGetter(resultCls, true);
-        if (ArrayUtil.isEmpty(fields)) {
-            if (log.isDebugEnabled()) {
-                log.debug("{} has not any field", resultCls.getName());
-            }
-            return;
-        }
-
-        if (log.isDebugEnabled()) {
-            log.debug("{} injection dict, field size: {}", resultCls.getName(), fields.length);
-        }
-        for (Field field : fields) {
-            injectionDict(obj, field);
-        }
-    }
-
-
-    private boolean isBaseType(Class cls) {
-        if (null == cls) {
-            return true;
-        }
-
-        if (cls == int.class ||
-                cls == Integer.class) {
-            return true;
-        }
-
-        if (cls == boolean.class ||
-                cls == Boolean.class) {
-            return true;
-        }
-
-        if (cls == short.class ||
-                cls == Short.class) {
-            return true;
-        }
-
-        if (cls == byte.class ||
-                cls == Byte.class) {
-            return true;
-        }
-
-        if (cls == String.class) {
-            return true;
-        }
-
-        if (cls == long.class ||
-                cls == Long.class) {
-            return true;
-        }
-
-        if (cls == double.class ||
-                cls == Double.class) {
-            return true;
-        }
-
-        if (cls == float.class ||
-                cls == float.class) {
-            return true;
-        }
-
-        if (cls == Object.class) {
-            // Object也为基本类型
-            return true;
-        }
-
-        // 非基本类型
-        return false;
-    }
-
-    public IDictService getDictService() {
-        return dictService;
-    }
-
-    public void setDictService(IDictService dictService) {
-        this.dictService = dictService;
+        // 2. 指查询字典值
+        String[] typeArray = dictSet.stream().map(DictId::type).distinct().toArray(String[]::new);
+        List<? extends DictItemDto<?>> dictList = dictService.list(typeArray);
+        // 3. 递归注入字典值
+        DictUtil.injectionDict(result, DictUtil.dictMap(dictList), this.dictProps);
     }
 }

@@ -1,8 +1,9 @@
 package io.github.chad2li.dictauto.base.service;
 
-import io.github.chad2li.dictauto.base.annotation.DictId;
 import io.github.chad2li.dictauto.base.cst.DictCst;
 import io.github.chad2li.dictauto.base.dto.DictItemDto;
+
+import java.util.List;
 
 /**
  * 获取字典数据的服务
@@ -11,22 +12,19 @@ import io.github.chad2li.dictauto.base.dto.DictItemDto;
  * @date 2022/5/19 00:55
  * @since 1 create by chad
  */
-public interface IDictService<I, T> {
+public interface IDictService<I, T extends DictItemDto<I>> {
     /**
      * springBean注入名称
      */
     String SPRING_BEAN_NAME = DictCst.SPRING_BEAN_NAME_PREFIX + "iDictService";
 
     /**
-     * 根据字典ID和类型获取实际的字典数据
+     * 批量查询type下的字典值
      *
-     * @param dictId   字典ID，bean中标有 {@link DictId} 注解的属性值
-     * @param dictType 字典类型，{@link DictId}中{@code type}值，可能为空
-     * @param target   当前 dictId属性所在的对象
-     * @return 需要自动注入的字典项值
-     * @date 2022/5/19 00:56
+     * @param type 字典类型
+     * @return dict list
      * @author chad
-     * @since 1 by chad at 2022/5/19
+     * @since 1 by chad at 2023/8/25
      */
-    DictItemDto<I> dict(I dictId, String dictType, T target);
+    List<T> list(String... type);
 }

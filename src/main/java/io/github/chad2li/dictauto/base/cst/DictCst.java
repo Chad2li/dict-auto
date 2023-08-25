@@ -12,6 +12,10 @@ public class DictCst {
      * spring bean 注入名称前缀
      */
     public static final String SPRING_BEAN_NAME_PREFIX = "springBean";
+    /**
+     * 默认的 parentId
+     */
+    public static final String DEFAULT_PARENT_ID = "0";
 
     /**
      * 字典ID属性后缀
