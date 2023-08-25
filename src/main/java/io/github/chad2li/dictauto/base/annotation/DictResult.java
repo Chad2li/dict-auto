@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
  * @copyright 2023 chad
  * @since created at 2023/8/25 01:54
  */
-@Target({ElementType.TYPE, ElementType.METHOD})
+@Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface DictResult {
 }
