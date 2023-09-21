@@ -1,3 +1,6 @@
+** 本项目于2023-09-21废弃 ** 
+** 请转用新项目 `auto-inject-all`: [Gitee](https://gitee.com/CodeinChad/auto-inject-all)|[Github](https://github.com/Chad2li/auto-inject-all) **
+
 ### 待办
 
 - `1.` List，Map，Set中的字典属性 `[完成]`

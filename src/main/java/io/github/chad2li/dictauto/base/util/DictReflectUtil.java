@@ -69,6 +69,6 @@ public class DictReflectUtil extends ReflectUtil {
         if (CollectionUtil.isEmpty(fieldList)) {
             return new Field[0];
         }
-        return fieldList.toArray(new Field[fieldList.size()]);
+        return fieldList.toArray(new Field[0]);
     }
 }
